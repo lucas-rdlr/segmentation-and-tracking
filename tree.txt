@@ -1,0 +1,37 @@
+segmentation
+├── experiments
+├── models
+├── notebooks
+│   ├── clam-tutorial
+│   │   ├── Session 1 -- Intro to QuPath and OpenSlide.ipynb
+│   │   ├── Session 2 -- Multiple Instance Learning.ipynb
+│   │   └── Session 3 -- Interpretability of MIL.ipynb
+│   ├── general.ipynb
+│   ├── MaskRCNN.ipynb
+│   ├── mesh_alice.ipynb
+│   ├── tracking.ipynb
+│   └── UNet.ipynb
+├── notes.txt
+├── README.md
+├── references
+├── reports
+│   └── figures
+├── requirements.txt
+└── src
+    ├── datasets.py
+    ├── downloads.py
+    ├── features
+    ├── initializer.py
+    ├── __init__.py
+    ├── labeling.py
+    ├── models
+    │   ├── maskrcnn_model.pth
+    │   ├── unet_model.pth
+    │   └── unet_model_trained.pth
+    ├── nets.py
+    ├── segmentation.py
+    ├── training.py
+    ├── transformations.py
+    ├── visualization
+    └── visualization.py
+
