@@ -18,7 +18,7 @@ class Cell_Dataset(Dataset):
         self.cell_type = cell_type
         self.t = time
 
-        self.path = f'content/Segmentation/training_data/{self.cell_type}/{self.t}'
+        self.path = f'data/external/Cell Challenge/training_data/{self.cell_type}/{self.t}'
         
         self.transforms = transforms
 
@@ -89,16 +89,16 @@ class Cell_Challenge_Segmentation_Dataset(Dataset):
         self.cell_type = cell_type
 
         if not test:
-            self.image_path1 = f'content/Segmentation/training_data/{self.cell_type}/01'
-            self.image_path2 = f'content/Segmentation/training_data/{self.cell_type}/02'
-            self.mask_path1 = f'content/Segmentation/training_data/{self.cell_type}/01_ST/SEG'
-            self.mask_path2 = f'content/Segmentation/training_data/{self.cell_type}/02_ST/SEG'
+            self.image_path1 = f'data/external/Cell Challenge/training_data/{self.cell_type}/01'
+            self.image_path2 = f'data/external/Cell Challenge/training_data/{self.cell_type}/02'
+            self.mask_path1 = f'data/external/Cell Challenge/training_data/{self.cell_type}/01_ST/SEG'
+            self.mask_path2 = f'data/external/Cell Challenge/training_data/{self.cell_type}/02_ST/SEG'
             self.names1 = sorted(os.listdir(self.mask_path1))
             self.names2 = sorted(os.listdir(self.mask_path2))
 
         else:
-            self.image_path1 = f'content/Segmentation/test_data/{self.cell_type}/01'
-            self.image_path2 = f'content/Segmentation/test_data/{self.cell_type}/02'
+            self.image_path1 = f'data/external/Cell Challenge/test_data/{self.cell_type}/01'
+            self.image_path2 = f'data/external/Cell Challenge/test_data/{self.cell_type}/02'
             self.names1 = sorted(os.listdir(self.image_path1))
             self.names2 = sorted(os.listdir(self.image_path2))
         
@@ -183,12 +183,12 @@ class Cell_Challenge_Segmentation_Dataset(Dataset):
     #     self.t = time
 
     #     if not test:
-    #         self.image_path = f'content/Segmentation/training_data/{self.cell_type}/{self.t}'
-    #         self.mask_path = f'content/Segmentation/training_data/{self.cell_type}/{self.t}_GT/SEG'
+    #         self.image_path = f'data/external/Cell Challenge/training_data/{self.cell_type}/{self.t}'
+    #         self.mask_path = f'data/external/Cell Challenge/training_data/{self.cell_type}/{self.t}_GT/SEG'
     #         self.names = sorted(os.listdir(self.mask_path))
 
     #     else:
-    #         self.image_path = f'content/Segmentation/challenge_data/{self.cell_type}/{self.t}'
+    #         self.image_path = f'data/external/Cell Challenge/challenge_data/{self.cell_type}/{self.t}'
     #         self.names = sorted(os.listdir(self.image_path))
         
     #     self.transforms = transforms
@@ -280,16 +280,16 @@ class Cell_Challenge_MaskRCNN_Dataset(Dataset):
         self.cell_type = cell_type
 
         if not test:
-            self.image_path1 = f'content/Segmentation/training_data/{self.cell_type}/01'
-            self.image_path2 = f'content/Segmentation/training_data/{self.cell_type}/02'
-            self.mask_path1 = f'content/Segmentation/training_data/{self.cell_type}/01_GT/SEG'
-            self.mask_path2 = f'content/Segmentation/training_data/{self.cell_type}/02_GT/SEG'
+            self.image_path1 = f'data/external/Cell Challenge/training_data/{self.cell_type}/01'
+            self.image_path2 = f'data/external/Cell Challenge/training_data/{self.cell_type}/02'
+            self.mask_path1 = f'data/external/Cell Challenge/training_data/{self.cell_type}/01_GT/SEG'
+            self.mask_path2 = f'data/external/Cell Challenge/training_data/{self.cell_type}/02_GT/SEG'
             self.names1 = sorted(os.listdir(self.mask_path1))
             self.names2 = sorted(os.listdir(self.mask_path2))
 
         else:
-            self.image_path1 = f'content/Segmentation/test_data/{self.cell_type}/01'
-            self.image_path2 = f'content/Segmentation/test_data/{self.cell_type}/02'
+            self.image_path1 = f'data/external/Cell Challenge/test_data/{self.cell_type}/01'
+            self.image_path2 = f'data/external/Cell Challenge/test_data/{self.cell_type}/02'
             self.names1 = sorted(os.listdir(self.image_path1))
             self.names2 = sorted(os.listdir(self.image_path2))
 
@@ -428,12 +428,12 @@ class Cell_Challenge_MaskRCNN_Dataset(Dataset):
 #         self.t = time
 
 #         if not test:
-#             self.image_path = f'content/Segmentation/training_data/{self.cell_type}/{self.t}'
-#             self.mask_path = f'content/Segmentation/training_data/{self.cell_type}/{self.t}_GT/SEG'
+#             self.image_path = f'data/external/Cell Challenge/training_data/{self.cell_type}/{self.t}'
+#             self.mask_path = f'data/external/Cell Challenge/training_data/{self.cell_type}/{self.t}_GT/SEG'
 #             self.names = sorted(os.listdir(self.mask_path))
         
 #         else:
-#             self.image_path = f'content/Segmentation/challenge_data/{self.cell_type}/{self.t}'
+#             self.image_path = f'data/external/Cell Challenge/challenge_data/{self.cell_type}/{self.t}'
 #             self.names = sorted(os.listdir(self.image_path))
 
 #         self.binary = binary

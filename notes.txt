@@ -13,6 +13,7 @@ Classification on Alice's meshes:
     	https://github.com/MECLabTUDA/M3d-Cam
 
 Segmentation and tracking:
+    Revise functions paths.
     Classify Alice's meshes using DiffusionNet.
     Make GraphNN github for tracking work.
     Organize own GitHub.
