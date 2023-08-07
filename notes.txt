@@ -2,8 +2,8 @@
 Classification on Alice's meshes:
     Read Beta-value article.
     Create CNN for mesh 3 labels classification: sano, astrocitma y oligodendroglioma.
-    Try to add betas_1.csv data to the classification.
-    Create attention map based on classification.
+    Try to add betas_1.csv data to the classification: https://forums.fast.ai/t/how-to-use-images-and-tabular-data-in-one-model/37304
+    Create attention map based on classification: https://github.com/MECLabTUDA/M3d-Cam
 
 Segmentation and tracking:
     Classify Alice's meshes using DiffusionNet.
