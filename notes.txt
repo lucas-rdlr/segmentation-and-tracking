@@ -1,0 +1,15 @@
+# TODO
+Classification on Alice's meshes:
+    Read Beta-value article.
+    Create CNN for mesh 3 labels classification: sano, astrocitma y oligodendroglioma.
+    Try to add betas_1.csv data to the classification.
+    Create attention map based on classification.
+
+Segmentation and tracking:
+    Classify Alice's meshes using DiffusionNet.
+    Make GraphNN github for tracking work.
+    Organize own GitHub.
+
+Cristina' images:
+
+Start memoir for Master 2 soutenhance.
