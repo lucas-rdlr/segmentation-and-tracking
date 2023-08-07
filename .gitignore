@@ -1,0 +1,8 @@
+data/external/Cell Challenge/
+data/external/Stanford3dDataset_v1.2/
+data/internal/
+data/processed/
+data/raw/
+
+notebooks/clam-tutorial/data/
+src/models/
