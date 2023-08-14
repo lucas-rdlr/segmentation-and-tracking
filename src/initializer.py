@@ -1,6 +1,13 @@
 import os
 
 def init():
+    """
+    Creates a basic tree folder for a Machine Learning project with the name and path
+    asked when running the module.
+    Since input() function converts everything to str data type, the name and path
+    should be given without quotes.
+    If no path is given, the folder will be created in the current path.
+    """
 
     cwd = os.getcwd()
     print('Current working directory:', cwd)
