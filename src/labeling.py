@@ -8,10 +8,10 @@ def readJson(file_path, img_size=(512, 443), box=False):
     Other GUI may also work but changes should be made.
 
     Inputs:
-        - file_path: path to the json file.
-        - img_size: size of the mask we want to create. Should be of the
-                    same size of the original image segmented.
-        - box: boolean indicating wether to create also a detection box
+        - file_path (str): path to the json file.
+        - img_size (tuple): size of the mask we want to create. Should be of the
+                same size of the original image segmented.
+        - box (bool): indicating wether to create also a detection box
                around the object or just the segmentation mask.
     
     Output: PIL Image containing the mask.
