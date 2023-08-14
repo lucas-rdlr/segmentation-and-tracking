@@ -8,6 +8,8 @@ Classification on Alice's meshes:
     	https://pytorch-widedeep.readthedocs.io/en/latest/index.html
     	https://github.com/ai-med/DAFT
     	https://jrzaurin.github.io/infinitoml/2020/12/11/pytorch-widedeep_ii.html
+        https://github.com/paulhager/MMCL-Tabular-Imaging
+        https://github.com/Lion-ZS/OTKGE
     	
     Create attention map based on classification:
     	https://github.com/MECLabTUDA/M3d-Cam
