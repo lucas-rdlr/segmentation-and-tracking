@@ -68,15 +68,14 @@ class Cell_Challenge_Segmentation_Dataset(Dataset):
     it to use it with a UNet Neural Network.
 
     Inputs:
-        - cell_type: cell type of dataset to create.
-        - transforms: transformation for data augmentation, preferably created with Albumentations
-                      so that it can take as inputs both images and masks.
-                      It is important that the images and masks are cropped in such a way that they
-                      are compatible with the UNet.
-        - test: boolean indicating wether its training or testing. If false, both images and masks
+        - cell_type (str): cell type of dataset to create.
+        - transforms (albumentations.Compose): transformation for data augmentation taking as inputs
+                both images and masks. It is important that the images and masks are cropped in such a
+                way that they are compatible with the UNet arquitecture.
+        - test (bool): indicating wether its training or testing. If false, both images and masks
                 will be taken in place.
 
-    Outputs: a list containing [images, masks] properly transformed to tensors and cropped so that
+    Outputs (list): containing [images, masks] properly transformed to tensors and cropped so that
              they can be feed to the UNet when in training and only images if in test mode.
 
     Remarks: Cell Challenge Datasets are divided in two folders (time 01 and 02) corresponding to
@@ -255,16 +254,16 @@ class Cell_Challenge_MaskRCNN_Dataset(Dataset):
     it to use it with Mask RCNN pretrained model from PyTorch.
 
     Inputs:
-        - cell_type: cell type of dataset to create
-        - transforms: transformation for data augmentation, preferably created with Albumentations
-                      so that it can take as inputs both images and masks.
-        - test: boolean indicating wether its training or testing. If false, both images and masks
+        - cell_type (str): cell type of dataset to create.
+        - transforms (albumentations.Compose): transformation for data augmentation taking as inputs
+                both images and masks.
+        - test (bool): indicating wether its training or testing. If false, both images and masks
                 will be taken in place.
-        - binary: boolean indicating wether perform semantic segmentation (if True) or instance.
+        - binary (bool): indicating wether perform semantic (true) or instance segmentation.
 
-    Outputs: a list containing [images, target] where the images are tensors with 3 channels (all of
-             them are the same, but it is necessary for this NN) and targets contains:
-             - boxes: coordinates for box detection of the instances
+    Outputs (list): containing [images, target] where the images are tensors with 3 channels and targets
+        contains:
+             - boxes: coordinates for box detection of the instances.
              - labels: vector of int values for different instances only if binary = False. If not,
                        the tensor will be of ones of length the number of instances.
              - masks: tensor of [number_instances, H, W] containing the mask for each of the instances.
@@ -273,6 +272,8 @@ class Cell_Challenge_MaskRCNN_Dataset(Dataset):
     Remarks: Cell Challenge Datasets are divided in two folders (time 01 and 02) corresponding to
              different measures. This function merges both folders to create a unique dataset instead
              of creating two different ones and training the UNet in different steps.
+             I this case, the 3 channels of the images are the same (since the original images are in
+             black and white) but doing so is neccesary to implement the Mask RCNN arquitecture.
     """
 
     def __init__(self, cell_type, transforms=None, test=False, binary=True):
