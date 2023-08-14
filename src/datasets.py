@@ -9,59 +9,6 @@ import tifffile as tiff
 from PIL import Image 
 
 
-class Cell_Dataset(Dataset):
-    def __init__(self, cell_type, time, transforms=None):
-        '''
-        data - train data path
-        masks - train masks path
-        '''
-        self.cell_type = cell_type
-        self.t = time
-
-        self.path = f'data/external/Cell Challenge/training_data/{self.cell_type}/{self.t}'
-        
-        self.transforms = transforms
-
-        self.names = sorted(os.listdir(self.path))
-        
-    def __len__(self):
-        
-        return len(self.names)
-        
-    def __getitem__(self, idx):
-        if idx > len(self.names):
-            print("Index out of range for the dataset")
-            return
-
-        image_name = os.path.join(self.path, self.names[idx])
-        mask_name = os.path.join(f'{self.path}_MK', self.names[idx])
-
-        img = tiff.imread(image_name)
-        mask = tiff.imread(mask_name)
-
-        img = np.transpose(img, (1, 2, 0))
-        mask = np.transpose(mask, (1, 2, 0))
-        
-        if self.transforms is not None:
-            img = self.transforms(img)
-            mask = self.transforms(mask)
-
-        else:
-            img = transforms.ToTensor()(img)
-            mask = transforms.ToTensor()(mask)
-        
-        img = img[0]
-        mask = mask[0]
-
-        img = torch.unsqueeze(img, dim=0)
-        mask = torch.unsqueeze(mask, dim=0)
-
-        return img, mask
-    
-
-#####################################################################
-
-
 class Cell_Challenge_Segmentation_Dataset(Dataset):
     """
     Creates a Dataset out of all possible in http://celltrackingchallenge.net/ and prepares
