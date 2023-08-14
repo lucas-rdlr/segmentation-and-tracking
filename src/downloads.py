@@ -11,7 +11,7 @@ def download_data(cell_type=None):
     """
     Download 2D and 3D datasets from http://celltrackingchallenge.net/ 
 
-    Input: name of dataset to download.
+    Input (str): name of dataset to download.
     Output: creates a folder in data/external/Cell Challenge with the training and challenge .zip files.
     """
 
@@ -83,7 +83,7 @@ def unzip_data(cell_type):
     """
     Unzip files previously downloaded with download_data(cell_type)
 
-    Input: name of dataset to unzip.
+    Input (str): name of dataset to unzip.
     Output: unzips the training and challenge files in data/external/Cell Challenge if they are
             already downloaded but not unzipped. If not, returns an error.
     """
@@ -141,12 +141,12 @@ def download_software():
 
 def unstack_tiff(path_in, path_out):
     """
-    The function takes a series of .tiff files composed of stack 3d images and separates
+    The function takes a series of .tiff files composed of stacked 3d images and separates
     each of them in the z axis into 2d images as .jpg files.
 
     Inputs:
-        - path_in: path to the folder containing the .tiff files.
-        - path_out: path to the folder to save the .jpg images.
+        - path_in (str): path to the folder containing the .tiff files.
+        - path_out (str): path to the folder to save the .jpg images.
 
     Remarks: the number of .jpg files in the output folder will be n*m where n is the number
              of .tiff files in the input folder and m the number of slices (in the z axis)
