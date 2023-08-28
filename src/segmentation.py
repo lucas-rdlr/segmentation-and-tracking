@@ -105,4 +105,3 @@ def post_processing(image, radius=4, thres=10, binary=True):
         new_image[i,:,:] = cleaned
 
     return new_image
-
