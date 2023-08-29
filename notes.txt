@@ -14,12 +14,18 @@ Classification on Alice's meshes:
     Create attention map based on classification:
     	https://github.com/MECLabTUDA/M3d-Cam
 
-Segmentation and tracking:
-    Revise functions paths.
-    Classify Alice's meshes using DiffusionNet.
+Classification DiffusionNet:
+    Use 3D datasets form Cell Tracking Challenge.
+    From the 7 available, only those without SIM contain ST.
+    Convert those 2D stack to .off files containing point cloud.
+    Create categories.txt file.
+
+Tracking GraphNN:
     Make GraphNN github for tracking work.
-    Organize own GitHub.
 
 Cristina' images:
 
 Start memoir for Master 2 soutenhance.
+
+# QUESTIONS
+Only 5 3D datasets from the Challenge contain ST, but not all of them are useful.

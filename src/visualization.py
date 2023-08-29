@@ -137,10 +137,13 @@ def tif_to_point_cloud(file):
 #####################################################################
 
 
-def point_cloud_to_off(array):
+def point_cloud_to_off(array, name, path=None):
+
+    if path is None:
+        path = os.getcwd()
     
     vertices = len(array)
-    with open('example.txt', 'w') as file:
+    with open(f'{path}/{name}.off', 'w') as file:
         file.write('OFF\n')
         file.write(f'{vertices} 0 0\n')
 
