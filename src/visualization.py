@@ -112,12 +112,12 @@ def tif_to_point_cloud(file):
                   the point cloud with color depending on its original value.
     """
     
-    volume = tiff.imread(file) / 255 # normalize it so it is less heavy
+    volume = tiff.imread(file) # / 255 normalize it so it is less heavy
     
     point_cloud = []
     values = []
 
-    for i,slice in enumerate(volume):
+    for i, slice in enumerate(volume):
         rows, cols = slice.shape
         z = i # Z-coordinate is the index of the slice
         
@@ -132,6 +132,22 @@ def tif_to_point_cloud(file):
     values = np.array(values)
 
     return point_cloud, values
+
+
+#####################################################################
+
+
+def point_cloud_to_off(array):
+    
+    vertices = len(array)
+    with open('example.txt', 'w') as file:
+        file.write('OFF\n')
+        file.write(f'{vertices} 0 0\n')
+
+        for vert in array:
+            file.write(f'{vert[0]} {vert[1]} {vert[2]}\n')
+        
+    return
 
 
 #####################################################################
