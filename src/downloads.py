@@ -33,10 +33,25 @@ def download_data(cell_type=None):
 
         return
 
-    if cell_type not in cell_type:
+    if cell_type not in twoD_types + threeD_types:
         print('The dataset your are looking for does not exist. Call download_data() for a list os possible cell types.')
         
         return
+    
+    if cell_type == '2D':
+        for cell in twoD_types:
+            download_data(cell)
+    
+    if cell_type == '3D':
+        for cell in threeD_types:
+            download_data(cell)
+    
+    if cell_type == 'All':
+        for cell_two in twoD_types:
+            download_data(cell_two)
+        
+        for cell_three in threeD_types:
+            download_data(cell_three)
 
     trainingdata_url = 'http://data.celltrackingchallenge.net/training-datasets/'
     testdata_url = 'http://data.celltrackingchallenge.net/test-datasets/'
@@ -87,9 +102,39 @@ def unzip_data(cell_type):
     Output: unzips the training and challenge files in data/external/Cell Challenge if they are
             already downloaded but not unzipped. If not, returns an error.
     """
+
+    twoD_types = ["BF-C2DL-HSC", "BF-C2DL-MuSC", "DIC-C2DH-HeLa", "Fluo-C2DL-Huh7",
+                  "Fluo-C2DL-MSC", "Fluo-N2DH-GOWT1", "Fluo-N2DL-HeLa", "PhC-C2DH-U373",
+                  "PhC-C2DL-PSC", "Fluo-N2DH-SIM+"]
+
+    threeD_types = ["Fluo-C3DH-A549", "Fluo-C3DH-H157", "Fluo-C3DL-MDA231", "Fluo-N3DH-CE",
+                    "Fluo-N3DH-CHO", "Fluo-C3DH-A549-SIM", "Fluo-N3DH-SIM+"]
+
+    if cell_type == None:
+        print("Possible datasets to unzip:")
+
+        print("2D datasets:")
+        print(twoD_types)
+
+        print("3D datasets:")
+        print(threeD_types)
+
+        return
+
+    if cell_type not in twoD_types + threeD_types and cell_type != 'All':
+        print('The dataset your are looking for does not exist. Call download_data() for a list os possible cell types.')
         
+        return
+
     path = 'data/external/Cell Challenge'
     folders = ['training_data', 'test_data']
+    
+    if cell_type == 'All':
+        disp = os.listdir(f"{path}/training_data")
+
+        for cells in disp:
+            cells = cells.split(sep='.')[0]
+            unzip_data(cells)
 
     for folder in folders:
         file = f'{path}/{folder}/{cell_type}'
