@@ -81,7 +81,7 @@ class UNet(nn.Module):
         self.channels = channels
         self.output = output
 
-        self.first_conv = double_conv(input, channels) #64, 224, 224
+        self.first_conv = double_conv(input, channels) # 64, 224, 224
         self.down_conv1 = down_conv(channels, 2*channels) # 128, 112, 112
         self.down_conv2 = down_conv(2*channels, 4*channels) # 256, 56, 56
         self.down_conv3 = down_conv(4*channels, 8*channels) # 512, 28, 28

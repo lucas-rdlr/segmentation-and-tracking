@@ -6,7 +6,85 @@ from torch.utils.data import Dataset
 
 import os
 import tifffile as tiff
-from PIL import Image 
+from PIL import Image
+
+class Embed_Segmentation_Dataset(Dataset):
+    """
+    Creates a Dataset out of all possible in http://celltrackingchallenge.net/ and prepares
+    it to use it with a UNet Neural Network.
+
+    Inputs:
+        - cell_type (str): cell type of dataset to create.
+        - transforms (albumentations.Compose): transformation for data augmentation taking as inputs
+                both images and masks. It is important that the images and masks are cropped in such a
+                way that they are compatible with the UNet arquitecture.
+        - test (bool): indicating wether its training or testing. If false, both images and masks
+                will be taken in place.
+
+    Outputs (list): containing [images, masks] properly transformed to tensors and cropped so that
+             they can be feed to the UNet when in training and only images if in test mode.
+
+    Remarks: Cell Challenge Datasets are divided in two folders (time 01 and 02) corresponding to
+             different measures. This function merges both folders to create a unique dataset instead
+             of creating two different ones and training the UNet in different steps.
+    """
+
+    def __init__(self, transforms=None, test=False):
+
+        if not test:
+            self.image_path = f'data/external/EmbedSeg/Mouse-Skull-Nuclei-CBG/train/images'
+            self.mask_path = f'data/external/EmbedSeg/Mouse-Skull-Nuclei-CBG/train/masks'
+
+        else:
+            self.image_path = f'data/external/EmbedSeg/Mouse-Skull-Nuclei-CBG/test/images'
+            self.mask_path = f'data/external/EmbedSeg/Mouse-Skull-Nuclei-CBG/test/masks'
+
+        self.image_names = sorted(os.listdir(self.image_path))
+        self.masks_names = sorted(os.listdir(self.mask_path))
+        self.transforms = transforms
+
+        self.test = test
+        
+    def __len__(self):
+        
+        return len(self.image_names)
+        
+    def __getitem__(self, idx):
+
+        # Transformation for test mode or self.transform = None
+        transform = transforms.Compose([
+            transforms.ToTensor()
+        ])
+
+        image_name = os.path.join(self.image_path, self.image_names[idx])
+        img = tiff.imread(image_name).astype(np.float16)         # shape (z, 443, 512)
+        slice = np.random.randint(0,img.shape[0])
+        img = transform(img[slice])                  # shape (1, 443, 512)
+
+        # Training mode
+        mask_name = os.path.join(self.mask_path, self.masks_names[idx])
+        mask = tiff.imread(mask_name)[slice].astype(np.float32) > 0  # shape (443, 512)
+        mask = transform(mask)  
+
+        if self.transforms is not None:
+            augmented = self.transforms(image=img, mask=mask)
+
+            # Retrieve the augmented image and mask with shape depending on Crop of transformation
+            img = augmented['image']  # shape (H, W)
+            mask = augmented['mask']  # shape (H, W)
+
+            # This dataset contains only one channel intead of 3
+            img = transforms.ToTensor()(img) # shape (1, H, W)
+            mask = transforms.ToTensor()(mask) # shape (1, H, W)
+            
+            return img, mask
+    
+        else:
+
+            return img, mask
+    
+
+#####################################################################
 
 
 class Cell_Challenge_Segmentation_Dataset(Dataset):
