@@ -1,11 +1,4 @@
-data/external/Cell Challenge/
-data/external/Stanford3dDataset_v1.2/
-data/external/EmbedSeg/
-data/external/Science Bowl Kaggle/
-
-data/internal/
-data/processed/
-data/raw/
+data/
 
 notebooks/clam-tutorial/data/
 notebooks/draft.ipynb
