@@ -1,4 +1,3 @@
-
 import numpy as np
 import torch
 from torchvision import transforms
@@ -80,6 +79,157 @@ class Embed_Segmentation_Dataset(Dataset):
             return img, mask
     
         else:
+
+            return img, mask
+    
+
+#####################################################################
+
+
+class Bowl_Kaggle_Segmentation_Dataset(Dataset):
+    """
+    Creates a Dataset from the 2018 Data Science Bowl available in
+    https://www.kaggle.com/c/data-science-bowl-2018/data and prepares
+    it to use it with a UNet Neural Network.
+
+    Inputs:
+        - transforms (albumentations.Compose): transformation for data augmentation taking as inputs
+                both images and masks. It is important that the images and masks are cropped in such a
+                way that they are compatible with the UNet arquitecture.
+        - type (str): indicating wether its training or testing. If 'train', both images and masks
+                will be taken in place.
+
+    Outputs (list): containing [images, masks] properly transformed to tensors and cropped so that
+             they can be feed to the UNet when in training and only images if in test mode.
+
+    Remarks:
+    """
+
+    def __init__(self, transforms=None, type='train'):
+
+        self.images_path = f'data/external/2D/Science Bowl Kaggle/{type}/images'
+        self.masks_path = f'data/external/2D/Science Bowl Kaggle/{type}/masks'
+        self.images_names = sorted(os.listdir(self.images_path))
+        self.masks_names = sorted(os.listdir(self.masks_path))
+        
+        self.transforms = transforms
+
+        self.test = type == 'test'
+        
+    def __len__(self):
+        
+        return len(self.images_names)
+        
+    def __getitem__(self, idx):
+
+        img = Image.open(os.path.join(self.images_path,self.images_names[idx]))
+        img = np.array(img)[:,:,0]
+
+        transform = transforms.Compose([
+            transforms.ToTensor(),
+            transforms.Resize((256,256))
+        ])
+
+        if self.test:
+
+            return transform(img)
+
+        # Training mode
+        mask = Image.open(os.path.join(self.masks_path,self.masks_names[idx]))
+        mask = np.array(mask)
+        
+        if self.transforms is not None:
+            augmented = self.transforms(image=img, mask=mask)
+
+            # Retrieve the augmented image and mask with shape depending on Crop of transformation
+            img = augmented['image']  # shape (H, W)
+            mask = augmented['mask']  # shape (H, W)
+
+            # This dataset contains only one channel intead of 3
+            img = transforms.ToTensor()(img) # shape (1, H, W)
+            mask = transforms.ToTensor()(mask) # shape (1, H, W)
+            
+            return img, mask
+    
+        else:
+            img = transform(img)
+            mask = transform(mask)
+
+            return img, mask
+    
+
+#####################################################################
+
+
+class WarwickQU_Segmentation_Dataset(Dataset):
+    """
+    Creates a Dataset from the 2015 MICCAI challenge available in
+    https://warwick.ac.uk/fac/cross_fac/tia/data/glascontest/download and prepares
+    it to use it with a UNet Neural Network.Bowl_KaggleBowl_Kaggle
+
+    Inputs:
+        - transforms (albumentations.Compose): transformation for data augmentation taking as inputs
+                both images and masks. It is important that the images and masks are cropped in such a
+                way that they are compatible with the UNet arquitecture.
+        - type (str): indicating wether its training or testing. If 'train', both images and masks
+                will be taken in place.
+
+    Outputs (list): containing [images, masks] properly transformed to tensors and cropped so that
+             they can be feed to the UNet when in training and only images if in test mode.
+
+    Remarks:
+    """
+
+    def __init__(self, transforms=None, type='train'):
+
+        self.images_path = f'data/external/2D/Warwick QU/{type}/images'
+        self.masks_path = f'data/external/2D/Warwick QU/{type}/masks'
+        self.images_names = os.listdir(self.images_path)
+        self.masks_names = os.listdir(self.masks_path)
+        
+        self.transforms = transforms
+
+        self.test = type == 'test'
+        
+    def __len__(self):
+        
+        return len(self.images_names)
+        
+    def __getitem__(self, idx):
+
+        img = Image.open(os.path.join(self.images_path,self.images_names[idx]))
+        img = np.array(img)[:,:,0]
+
+        # Transformation for test mode or self.transform = None
+        transform = transforms.Compose([
+            transforms.ToTensor(),
+            transforms.Resize((512,768))
+        ])
+
+        if self.test:
+
+            return transform(img)
+
+        # Training mode
+        mask = Image.open(os.path.join(self.masks_path,self.masks_names[idx]))
+        mask = np.array(mask) > 0
+        
+        if self.transforms is not None:
+            augmented = self.transforms(image=img, mask=mask)
+
+            # Retrieve the augmented image and mask with shape depending on Crop of transformation
+            img = augmented['image']  # shape (H, W)
+            mask = augmented['mask']  # shape (H, W)
+
+            # This dataset contains only one channel intead of 3
+            img = transforms.ToTensor()(img) # shape (1, H, W)
+            mask = transforms.ToTensor()(mask) # shape (1, H, W)
+            
+            return img, mask
+    
+        else:
+            img = transform(img)
+            mask = transform(mask)
 
             return img, mask
     
