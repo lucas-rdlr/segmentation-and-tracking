@@ -212,15 +212,55 @@ class WarwickQU_Segmentation_Dataset(Dataset):
     Remarks:
     """
 
-    def __init__(self, transforms=None, type='train'):
+    def __init__(self, size=(512,768), channels=3, normalize=True, transforms=None, type='train'):
 
-        self.images_path = f'data/external/2D/Warwick QU/{type}/images'
-        self.masks_path = f'data/external/2D/Warwick QU/{type}/masks'
-        self.images_names = os.listdir(self.images_path)
-        self.masks_names = os.listdir(self.masks_path)
+        images_path = f'data/external/2D/Warwick QU/{type}/images'
+        masks_path = f'data/external/2D/Warwick QU/{type}/masks'
+        images_total = sorted(os.listdir(images_path))
+        masks_total = sorted(os.listdir(masks_path))
+
+        images_names = []
+        masks_names = []
+
+        if channels == 3:
+            flags = cv2.IMREAD_COLOR
+
+        elif channels == 1:
+            flags = cv2.IMREAD_GRAYSCALE
         
-        self.transforms = transforms
+        else:
+            print("Incorrect number of channels")
+            return
+    
+        self.flags = flags
 
+        for i, names in enumerate(images_total):
+            img = cv2.imread(os.path.join(images_path,names), flags)
+
+            if img.shape[:2] == (522,775):
+                img_path = os.path.join(images_path,names)
+                images_names.append(img_path)
+
+                if type == 'train':
+                    mask_path = os.path.join(masks_path,masks_total[i])
+                    masks_names.append(mask_path)
+        
+        self.images_names = images_names
+        self.masks_names = masks_names
+
+        if normalize:
+            means = [np.mean(cv2.imread(name, flags), axis=(0,1)) for name in images_names]
+            stds = [np.std(cv2.imread(name, flags), axis=(0,1)) for name in images_names]
+            
+            means = np.array(means)
+            stds = np.array(stds)
+
+            self.mean = np.mean(means, axis=0)
+            self.std = np.mean(stds, axis=0)
+        
+        self.size = size
+        self.normalize = normalize
+        self.transforms = transforms
         self.test = type == 'test'
         
     def __len__(self):
@@ -229,13 +269,15 @@ class WarwickQU_Segmentation_Dataset(Dataset):
         
     def __getitem__(self, idx):
 
-        img = Image.open(os.path.join(self.images_path,self.images_names[idx]))
-        img = np.array(img)[:,:,0]
+        img = cv2.imread(self.images_names[idx], self.flags)
+
+        if self.normalize:
+            img = (img - self.mean) / self.std
 
         # Transformation for test mode or self.transform = None
         transform = transforms.Compose([
             transforms.ToTensor(),
-            transforms.Resize((512,768))
+            transforms.Resize(self.size)
         ])
 
         if self.test:
@@ -243,8 +285,7 @@ class WarwickQU_Segmentation_Dataset(Dataset):
             return transform(img)
 
         # Training mode
-        mask = Image.open(os.path.join(self.masks_path,self.masks_names[idx]))
-        mask = np.array(mask) > 0
+        mask = cv2.imread(self.masks_names[idx], cv2.IMREAD_GRAYSCALE)
         
         if self.transforms is not None:
             augmented = self.transforms(image=img, mask=mask)
