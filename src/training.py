@@ -67,6 +67,10 @@ def train_UNet(model, device, optimizer, train_dataloader, val_dataloader=None, 
 
     train_losses = []
     val_losses = []
+    train_acc = []
+    val_acc = []
+    dices =  []
+    ious = []
     
     model = model.to(device=device)
 
@@ -102,6 +106,7 @@ def train_UNet(model, device, optimizer, train_dataloader, val_dataloader=None, 
         train_epoch_loss /= len(train_dataloader)
         train_losses.append(train_epoch_loss)
         train_epoch_accuracy = train_epoch_correct / train_epoch_total
+        train_acc.append(train_epoch_accuracy)
 
         if val_dataloader is not None:
             val_epoch_loss = 0
@@ -132,17 +137,21 @@ def train_UNet(model, device, optimizer, train_dataloader, val_dataloader=None, 
                     intersection += (val_predictions * y).sum()
                     denom += (val_predictions + y).sum()
                     dice = 2*intersection/(denom + 1e-8)
+                    dices.append(dice)
 
                     # Intersection over Union
                     union += ((val_predictions) + y - (val_predictions * y)).sum()
                     iou = (intersection)/(union + 1e-8)
+                    ious.append(iou)
                 
                 val_epoch_loss /= len(val_dataloader)
                 val_losses.append(val_epoch_loss)
+
                 val_epoch_accuracy = val_epoch_correct / val_epoch_total
+                val_acc.append(val_epoch_accuracy)
 
                 if early_stopping(model, val_epoch_loss):
-                   return train_losses, val_losses
+                   return train_losses, val_losses, train_acc, val_acc, dices, ious
             
             print(f'Epoch: {epoch}/{epochs}, Train loss: {train_epoch_loss:.4f}, Val loss: {val_epoch_loss:.4f}, '
                     f'Train acc: {train_epoch_accuracy:.4f}, Val acc: {val_epoch_accuracy:.4f}, '
@@ -151,7 +160,7 @@ def train_UNet(model, device, optimizer, train_dataloader, val_dataloader=None, 
         else:
             print(f'Epoch: {epoch}/{epochs}, Train loss: {train_epoch_loss:.4f}, Train acc: {train_epoch_accuracy:.4f}')    
 
-    return train_losses, val_losses
+    return train_losses, val_losses, train_acc, val_acc, dices, ious
 
 
 #####################################################################
