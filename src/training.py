@@ -150,8 +150,9 @@ def train_UNet(model, device, optimizer, train_dataloader, val_dataloader=None, 
                 val_epoch_accuracy = val_epoch_correct / val_epoch_total
                 val_acc.append(val_epoch_accuracy)
 
-                if early_stopping(model, val_epoch_loss):
-                   return train_losses, val_losses, train_acc, val_acc, dices, ious
+                if early_stopping is not None:
+                    if early_stopping(model, val_epoch_loss):
+                        return train_losses, val_losses, train_acc, val_acc, dices, ious
             
             print(f'Epoch: {epoch}/{epochs}, Train loss: {train_epoch_loss:.4f}, Val loss: {val_epoch_loss:.4f}, '
                     f'Train acc: {train_epoch_accuracy:.4f}, Val acc: {val_epoch_accuracy:.4f}, '
