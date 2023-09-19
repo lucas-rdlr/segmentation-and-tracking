@@ -106,7 +106,7 @@ class Bowl_Kaggle_Segmentation_Dataset(Dataset):
     Remarks:
     """
 
-    def __init__(self, transforms=None, type='train'):
+    def __init__(self, size=(512,768), channels=3, normalize=True, transforms=None, type='train'):
 
         images_path = f'data/external/2D/Science Bowl Kaggle/{type}/images'
         masks_path = f'data/external/2D/Science Bowl Kaggle/{type}/masks'
@@ -116,8 +116,20 @@ class Bowl_Kaggle_Segmentation_Dataset(Dataset):
         images_names = []
         masks_names = []
 
+        if channels == 3:
+            flags = cv2.IMREAD_COLOR
+
+        elif channels == 1:
+            flags = cv2.IMREAD_GRAYSCALE
+        
+        else:
+            print("Incorrect number of channels")
+            return
+    
+        self.flags = flags
+
         for i, names in enumerate(images_total):
-            img = cv2.imread(os.path.join(images_path,names), cv2.IMREAD_GRAYSCALE)
+            img = cv2.imread(os.path.join(images_path,names), flags)
 
             if img.shape == (256,256) or img.shape == (256,320):
                 img_path = os.path.join(images_path,names)
@@ -130,17 +142,19 @@ class Bowl_Kaggle_Segmentation_Dataset(Dataset):
         self.images_names = images_names
         self.masks_names = masks_names
 
-        means = [np.mean(cv2.imread(name, cv2.IMREAD_GRAYSCALE)) for name in images_names]
-        stds = [np.std(cv2.imread(name, cv2.IMREAD_GRAYSCALE)) for name in images_names]
+        if normalize:
+            means = [np.mean(cv2.imread(name, flags), axis=(0,1)) for name in images_names]
+            stds = [np.std(cv2.imread(name, flags), axis=(0,1)) for name in images_names]
+            
+            means = np.array(means)
+            stds = np.array(stds)
+
+            self.mean = np.mean(means, axis=0)
+            self.std = np.mean(stds, axis=0)
         
-        means = np.array(means)
-        stds = np.array(stds)
-
-        self.mean = np.mean(means)
-        self.std = np.mean(stds)
-
+        self.size = size
+        self.normalize = normalize
         self.transforms = transforms
-
         self.test = type == 'test'
         
     def __len__(self):
@@ -149,25 +163,21 @@ class Bowl_Kaggle_Segmentation_Dataset(Dataset):
         
     def __getitem__(self, idx):
 
-        # img = Image.open(os.path.join(self.images_path,self.images_names[idx]))
-        # img = np.array(img)[:,:,0]
-        # img = cv2.imread(os.path.join(self.images_path,self.images_names[idx]))
-        img = cv2.imread(self.images_names[idx], cv2.IMREAD_GRAYSCALE)
-        # img = (img - self.mean) / self.std
+        img = cv2.imread(self.images_names[idx], self.flags)
 
-        transform = transforms.Compose([
-            transforms.ToTensor(),
-            transforms.Resize((256,256))
-        ])
+        if self.normalize:
+            img = (img - self.mean) / self.std
+
+        if self.size is not None:
+            transform = transforms.Compose([
+                transforms.ToTensor(),
+                transforms.Resize(self.size)
+            ])
 
         if self.test:
 
             return transform(img)
 
-        # Training mode
-        # mask = Image.open(os.path.join(self.masks_path,self.masks_names[idx]))
-        # mask = np.array(mask)
-        # mask = cv2.imread(os.path.join(self.masks_path,self.masks_names[idx]))
         mask = cv2.imread(self.masks_names[idx], cv2.IMREAD_GRAYSCALE)
 
         if self.transforms is not None:
@@ -216,8 +226,8 @@ class WarwickQU_Segmentation_Dataset(Dataset):
 
         images_path = f'data/external/2D/Warwick QU/{type}/images'
         masks_path = f'data/external/2D/Warwick QU/{type}/masks'
-        images_total = sorted(os.listdir(images_path))
-        masks_total = sorted(os.listdir(masks_path))
+        images_total = os.listdir(images_path)
+        masks_total = os.listdir(masks_path)
 
         images_names = []
         masks_names = []
@@ -235,15 +245,22 @@ class WarwickQU_Segmentation_Dataset(Dataset):
         self.flags = flags
 
         for i, names in enumerate(images_total):
-            img = cv2.imread(os.path.join(images_path,names), flags)
+            img_path = os.path.join(images_path,names)
+            images_names.append(img_path)
 
-            if img.shape[:2] == (522,775):
-                img_path = os.path.join(images_path,names)
-                images_names.append(img_path)
+            if type == 'train':
+                mask_path = os.path.join(masks_path,masks_total[i])
+                masks_names.append(mask_path)
 
-                if type == 'train':
-                    mask_path = os.path.join(masks_path,masks_total[i])
-                    masks_names.append(mask_path)
+            # img = cv2.imread(os.path.join(images_path,names), flags)
+
+            # if img.shape[:2] == (522,775):
+            #     img_path = os.path.join(images_path,names)
+            #     images_names.append(img_path)
+
+            #     if type == 'train':
+            #         mask_path = os.path.join(masks_path,masks_total[i])
+            #         masks_names.append(mask_path)
         
         self.images_names = images_names
         self.masks_names = masks_names
@@ -287,6 +304,134 @@ class WarwickQU_Segmentation_Dataset(Dataset):
         # Training mode
         mask = cv2.imread(self.masks_names[idx], cv2.IMREAD_GRAYSCALE)
         
+        if self.transforms is not None:
+            augmented = self.transforms(image=img, mask=mask)
+
+            # Retrieve the augmented image and mask with shape depending on Crop of transformation
+            img = augmented['image']  # shape (H, W)
+            mask = augmented['mask']  # shape (H, W)
+
+            # This dataset contains only one channel intead of 3
+            img = transforms.ToTensor()(img) # shape (1, H, W)
+            mask = transforms.ToTensor()(mask) # shape (1, H, W)
+            
+            return img, mask
+    
+        else:
+            img = transform(img)
+            mask = transform(mask)
+
+            return img, mask
+        
+
+#####################################################################
+
+
+class TwoD_Cell_Challenge_Segmentation_Dataset(Dataset):
+    """
+    Creates a Dataset out of all possible in http://celltrackingchallenge.net/ and prepares
+    it to use it with a UNet Neural Network.
+
+    Inputs:
+        - cell_type (str): cell type of dataset to create.
+        - transforms (albumentations.Compose): transformation for data augmentation taking as inputs
+                both images and masks. It is important that the images and masks are cropped in such a
+                way that they are compatible with the UNet arquitecture.
+        - test (bool): indicating wether its training or testing. If false, both images and masks
+                will be taken in place.
+
+    Outputs (list): containing [images, masks] properly transformed to tensors and cropped so that
+             they can be feed to the UNet when in training and only images if in test mode.
+
+    Remarks: Cell Challenge Datasets are divided in two folders (time 01 and 02) corresponding to
+             different measures. This function merges both folders to create a unique dataset instead
+             of creating two different ones and training the UNet in different steps.
+    """
+
+    def __init__(self, cell_type, size=None, channels=3, normalize=True, transforms=None, type='train'):
+
+        self.cell_type = cell_type
+
+        images_path1 = f'data/external/2D/Cell Challenge/{type}/{cell_type}/01'
+        images_path2 = f'data/external/2D/Cell Challenge/{type}/{cell_type}/02'
+        masks_path1 = f'data/external/2D/Cell Challenge/{type}/{cell_type}/01_ST/SEG'
+        masks_path2 = f'data/external/2D/Cell Challenge/{type}/{cell_type}/02_ST/SEG'
+        images_total1 = sorted(os.listdir(images_path1))
+        images_total2 = sorted(os.listdir(images_path2))
+
+        images_names = []
+        masks_names = []
+
+        if channels == 3:
+            flags = cv2.IMREAD_COLOR
+
+        elif channels == 1:
+            flags = cv2.IMREAD_GRAYSCALE
+        
+        else:
+            print("Incorrect number of channels")
+            return
+    
+        self.flags = flags
+
+        images_path = [images_path1, images_path2]
+        images_total = [images_total1, images_total2]
+        for j,total in enumerate(images_total):
+            for i, names in enumerate(total):
+                img_path = os.path.join(images_path[j],names)
+                images_names.append(img_path)
+
+                if type == 'train':
+                    masks_total1 = sorted(os.listdir(masks_path1))
+                    masks_total2 = sorted(os.listdir(masks_path2))
+                    masks_path = [masks_path1, masks_path2]
+                    masks_total = [masks_total1, masks_total2]
+                    mask_path = os.path.join(masks_path[j],masks_total[j][i])
+                    masks_names.append(mask_path)
+
+        self.images_names = images_names
+        self.masks_names = masks_names
+
+        if normalize:
+            means = [np.mean(cv2.imread(name, flags), axis=(0,1)) for name in images_names]
+            stds = [np.std(cv2.imread(name, flags), axis=(0,1)) for name in images_names]
+            
+            means = np.array(means)
+            stds = np.array(stds)
+
+            self.mean = np.mean(means, axis=0)
+            self.std = np.mean(stds, axis=0)
+        
+        self.size = size
+        self.normalize = normalize
+        self.transforms = transforms
+        self.test = type == 'test'
+        
+    def __len__(self):
+        
+        return len(self.images_names)
+        
+    def __getitem__(self, idx):
+
+        img = cv2.imread(self.images_names[idx], self.flags)
+
+        if self.normalize:
+            img = (img - self.mean) / self.std
+
+        if self.size is None:
+            self.size = img.shape
+
+        transform = transforms.Compose([
+            transforms.ToTensor(),
+            transforms.Resize(self.size)
+        ])
+
+        if self.test:
+
+            return transform(img)
+
+        mask = tiff.imread(self.masks_names[idx]).astype(np.float32) > 0
+
         if self.transforms is not None:
             augmented = self.transforms(image=img, mask=mask)
 

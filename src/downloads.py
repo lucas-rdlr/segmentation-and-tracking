@@ -32,11 +32,6 @@ def download_data(cell_type=None):
         print(threeD_types)
 
         return
-
-    if cell_type not in twoD_types + threeD_types:
-        print('The dataset your are looking for does not exist. Call download_data() for a list os possible cell types.')
-        
-        return
     
     if cell_type == '2D':
         for cell in twoD_types:
@@ -52,42 +47,53 @@ def download_data(cell_type=None):
         
         for cell_three in threeD_types:
             download_data(cell_three)
-
-    trainingdata_url = 'http://data.celltrackingchallenge.net/training-datasets/'
-    testdata_url = 'http://data.celltrackingchallenge.net/test-datasets/'
-
-    urls = [trainingdata_url, testdata_url]
-    folders = ['training_data', 'test_data']
-
-    path = 'data/external/Cell Challenge'
-
-    if not os.path.isdir(path):
-        os.makedirs(path)
-
-    for i in range(2):
-        folder = f'{path}/{folders[i]}'
-        file = f'{path}/{folders[i]}/{cell_type}.zip'
-
-        if not os.path.isdir(folder):
-            os.makedirs(folder)
-
-        if os.path.isfile(file):
-            print(f'{cell_type} {folders[i]} data already downloaded')
-            pass
-
-        else:
-            print(f'Getting url request for {cell_type} {folders[i]} ...')
-            url = f'{urls[i]}{cell_type}.zip'
-            r = requests.get(url)
-
-            try:
-                print(f'Downloading {folders[i]} to {folder} ...')
-                with open(file, 'wb') as f:
-                    for chunk in r.iter_content(chunk_size=8192):
-                        f.write(chunk)
-            except:
-                print('There was an error attepting to connect to the server')
     
+    for cell in cell_type:
+    
+        if cell not in twoD_types + threeD_types:
+            print('The dataset your are looking for does not exist. Call download_data() for a list os possible cell types.')
+            
+            return
+
+        trainingdata_url = 'http://data.celltrackingchallenge.net/training-datasets/'
+        testdata_url = 'http://data.celltrackingchallenge.net/test-datasets/'
+
+        urls = [trainingdata_url, testdata_url]
+        folders = ['train', 'test']
+
+        if cell in twoD_types:
+            path = f'data/external/2D/Cell Challenge'
+        
+        else:
+            path = f'data/external/3D/Cell Challenge'
+
+        if not os.path.isdir(path):
+            os.makedirs(path)
+
+        for i in range(2):
+            folder = os.path.join(path,folders[i])
+            file = os.path.join(folder,f'{cell}.zip')
+
+            if not os.path.isdir(folder):
+                os.makedirs(folder)
+
+            if os.path.isfile(file):
+                print(f'{cell} {folders[i]} data already downloaded')
+                pass
+
+            else:
+                print(f'Getting url request for {cell} {folders[i]} ...')
+                url = f'{urls[i]}{cell}.zip'
+                r = requests.get(url)
+
+                try:
+                    print(f'Downloading {folders[i]} to {folder} ...')
+                    with open(file, 'wb') as f:
+                        for chunk in r.iter_content(chunk_size=8192):
+                            f.write(chunk)
+                except:
+                    print('There was an error attepting to connect to the server')
+        
     return
 
 
@@ -109,6 +115,8 @@ def unzip_data(cell_type):
 
     threeD_types = ["Fluo-C3DH-A549", "Fluo-C3DH-H157", "Fluo-C3DL-MDA231", "Fluo-N3DH-CE",
                     "Fluo-N3DH-CHO", "Fluo-C3DH-A549-SIM", "Fluo-N3DH-SIM+"]
+    
+    folders = ['train', 'test']
 
     if cell_type == None:
         print("Possible datasets to unzip:")
@@ -120,14 +128,6 @@ def unzip_data(cell_type):
         print(threeD_types)
 
         return
-
-    if cell_type not in twoD_types + threeD_types and cell_type != 'All':
-        print('The dataset your are looking for does not exist. Call download_data() for a list os possible cell types.')
-        
-        return
-
-    path = 'data/external/Cell Challenge'
-    folders = ['training_data', 'test_data']
     
     if cell_type == 'All':
         disp = os.listdir(f"{path}/training_data")
@@ -136,21 +136,34 @@ def unzip_data(cell_type):
             cells = cells.split(sep='.')[0]
             unzip_data(cells)
 
-    for folder in folders:
-        file = f'{path}/{folder}/{cell_type}'
+    for cell in cell_type:
 
-        if not os.path.isfile(f'{file}.zip'):
-            print(f'{cell_type}/{folder}.zip does not exist. Try downloading it first')
-            continue
+        if cell in twoD_types:
+            path = 'data/external/2D/Cell Challenge'
+    
+        else:
+            path = 'data/external/3D/Cell Challenge'
 
-        if os.path.isdir(file):
-            print(f'{cell_type} {folder} data already unzipped')
-            continue
+        if cell not in twoD_types + threeD_types and cell != 'All':
+            print('The dataset your are looking for does not exist. Call download_data() for a list os possible cell types.')
+            
+            return
+        
+        for folder in folders:
+            file = os.path.join(path,folder,cell)
 
-        print(f'Unzipping {cell_type} {folder}...')
-        with zipfile.ZipFile(f'{file}.zip', 'r') as z:
-            z.extractall(f'{path}/{folder}')
-          
+            if not os.path.isfile(f'{file}.zip'):
+                print(f'{cell}/{folder}.zip does not exist. Try downloading it first')
+                continue
+
+            if os.path.isdir(file):
+                print(f'{cell} {folder} data already unzipped')
+                continue
+
+            print(f'Unzipping {cell} {folder}...')
+            with zipfile.ZipFile(f'{file}.zip', 'r') as z:
+                z.extractall(f'{path}/{folder}')
+            
     return
 
 
