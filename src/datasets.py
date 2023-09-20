@@ -8,6 +8,124 @@ import tifffile as tiff
 from PIL import Image
 import cv2
 
+
+class UNet_Segmentation_Dataset(Dataset):
+    """
+    Creates a Dataset from the 2018 Data Science Bowl available in
+    https://www.kaggle.com/c/data-science-bowl-2018/data and prepares
+    it to use it with a UNet Neural Network.
+
+    Inputs:
+        - transforms (albumentations.Compose): transformation for data augmentation taking as inputs
+                both images and masks. It is important that the images and masks are cropped in such a
+                way that they are compatible with the UNet arquitecture.
+        - type (str): indicating wether its training or testing. If 'train', both images and masks
+                will be taken in place.
+
+    Outputs (list): containing [images, masks] properly transformed to tensors and cropped so that
+             they can be feed to the UNet when in training and only images if in test mode.
+
+    Remarks:
+    """
+
+    def __init__(self, name, type, channels, normalize, shape, transforms):
+
+        if normalize:
+            images_path = f'data/external/2D/{name}/normalized'
+        
+        else:
+            images_path = f'data/external/2D/{name}/images'
+        
+        images_total = os.listdir(images_path)
+
+        if channels == 3:
+            channels = cv2.IMREAD_COLOR
+
+        elif channels == 1:
+            channels = cv2.IMREAD_GRAYSCALE
+        
+        else:
+            print("Incorrect number of channels")
+            return
+
+        images_names = []
+        masks_names = []
+        
+        for i in range(len(images_total)):
+            img_path = os.path.join(images_path, images_total[i])
+            images_names.append(img_path)
+
+            if type == 'train':
+                masks_path = f'data/external/2D/{name}/masks'
+                masks_total = os.listdir(masks_path)
+                mask_path = os.path.join(masks_path,masks_total[i])
+                masks_names.append(mask_path)
+        
+        self.images_names = images_names
+        self.masks_names = masks_names
+    
+        self.name = name
+        self.type = type
+        self.channels = channels
+        self.normalize = normalize
+        self.shape = shape
+        self.transforms = transforms
+        
+    def __len__(self):
+
+        if len(self.images_names) != len(self.masks_names):
+            print("Number of images and masks do not match")
+            return 0
+        
+        else:
+            return len(self.images_names)
+        
+    def __getitem__(self, idx):
+
+        if self.normalize:
+            img = np.load(self.images_names[idx])
+
+        else:
+            img = cv2.imread(self.images_names[idx], self.channels)
+
+        if self.shape is not None:
+            transform = transforms.Compose([
+                transforms.ToTensor(),
+                transforms.Resize(self.shape, antialias=True)
+            ])
+
+        if self.type == 'test':
+            return transform(img)
+        
+        if self.name.startswith('Cell Challenge'):
+            mask = tiff.imread(self.masks_names[idx]) > 0
+        
+        else:
+            mask = cv2.imread(self.masks_names[idx], cv2.IMREAD_GRAYSCALE) > 0
+
+        if self.transforms is not None:
+            augmented = self.transforms(image=img, mask=mask)
+
+            # Retrieve the augmented image and mask with shape depending on Crop of transformation
+            img = augmented['image']  # shape (H, W)
+            mask = augmented['mask']  # shape (H, W)
+
+            # This dataset contains only one channel intead of 3
+            img = transforms.ToTensor()(img) # shape (1, H, W)
+            mask = transforms.ToTensor()(mask) # shape (1, H, W)
+            
+            return img, mask
+    
+        else:
+            img = transform(img)
+            mask = transform(mask)
+
+            return img, mask
+        
+
+#####################################################################
+
+
 class Embed_Segmentation_Dataset(Dataset):
     """
     Creates a Dataset out of all possible in http://celltrackingchallenge.net/ and prepares
@@ -82,190 +200,8 @@ class Embed_Segmentation_Dataset(Dataset):
         else:
 
             return img, mask
+
     
-
-#####################################################################
-
-
-class Bowl_Kaggle_Segmentation_Dataset(Dataset):
-    """
-    Creates a Dataset from the 2018 Data Science Bowl available in
-    https://www.kaggle.com/c/data-science-bowl-2018/data and prepares
-    it to use it with a UNet Neural Network.
-
-    Inputs:
-        - transforms (albumentations.Compose): transformation for data augmentation taking as inputs
-                both images and masks. It is important that the images and masks are cropped in such a
-                way that they are compatible with the UNet arquitecture.
-        - type (str): indicating wether its training or testing. If 'train', both images and masks
-                will be taken in place.
-
-    Outputs (list): containing [images, masks] properly transformed to tensors and cropped so that
-             they can be feed to the UNet when in training and only images if in test mode.
-
-    Remarks:
-    """
-
-    def __init__(self, transforms=None, type='train'):
-
-        images_path = f'data/external/2D/Science Bowl Kaggle/{type}/images'
-        masks_path = f'data/external/2D/Science Bowl Kaggle/{type}/masks'
-        images_total = sorted(os.listdir(images_path))
-        masks_total = sorted(os.listdir(masks_path))[:670]
-
-        images_names = []
-        masks_names = []
-
-        for i, names in enumerate(images_total):
-            img = cv2.imread(os.path.join(images_path,names), cv2.IMREAD_GRAYSCALE)
-
-            if img.shape == (256,256) or img.shape == (256,320):
-                img_path = os.path.join(images_path,names)
-                images_names.append(img_path)
-
-                if type == 'train':
-                    mask_path = os.path.join(masks_path,masks_total[i])
-                    masks_names.append(mask_path)
-        
-        self.images_names = images_names
-        self.masks_names = masks_names
-
-        means = [np.mean(cv2.imread(name, cv2.IMREAD_GRAYSCALE)) for name in images_names]
-        stds = [np.std(cv2.imread(name, cv2.IMREAD_GRAYSCALE)) for name in images_names]
-        
-        means = np.array(means)
-        stds = np.array(stds)
-
-        self.mean = np.mean(means)
-        self.std = np.mean(stds)
-
-        self.transforms = transforms
-
-        self.test = type == 'test'
-        
-    def __len__(self):
-        
-        return len(self.images_names)
-        
-    def __getitem__(self, idx):
-
-        # img = Image.open(os.path.join(self.images_path,self.images_names[idx]))
-        # img = np.array(img)[:,:,0]
-        # img = cv2.imread(os.path.join(self.images_path,self.images_names[idx]))
-        img = cv2.imread(self.images_names[idx], cv2.IMREAD_GRAYSCALE)
-        # img = (img - self.mean) / self.std
-
-        transform = transforms.Compose([
-            transforms.ToTensor(),
-            transforms.Resize((256,256))
-        ])
-
-        if self.test:
-
-            return transform(img)
-
-        # Training mode
-        # mask = Image.open(os.path.join(self.masks_path,self.masks_names[idx]))
-        # mask = np.array(mask)
-        # mask = cv2.imread(os.path.join(self.masks_path,self.masks_names[idx]))
-        mask = cv2.imread(self.masks_names[idx], cv2.IMREAD_GRAYSCALE)
-
-        if self.transforms is not None:
-            augmented = self.transforms(image=img, mask=mask)
-
-            # Retrieve the augmented image and mask with shape depending on Crop of transformation
-            img = augmented['image']  # shape (H, W)
-            mask = augmented['mask']  # shape (H, W)
-
-            # This dataset contains only one channel intead of 3
-            img = transforms.ToTensor()(img) # shape (1, H, W)
-            mask = transforms.ToTensor()(mask) # shape (1, H, W)
-            
-            return img, mask
-    
-        else:
-            img = transform(img)
-            mask = transform(mask)
-
-            return img, mask
-    
-
-#####################################################################
-
-
-class WarwickQU_Segmentation_Dataset(Dataset):
-    """
-    Creates a Dataset from the 2015 MICCAI challenge available in
-    https://warwick.ac.uk/fac/cross_fac/tia/data/glascontest/download and prepares
-    it to use it with a UNet Neural Network.Bowl_KaggleBowl_Kaggle
-
-    Inputs:
-        - transforms (albumentations.Compose): transformation for data augmentation taking as inputs
-                both images and masks. It is important that the images and masks are cropped in such a
-                way that they are compatible with the UNet arquitecture.
-        - type (str): indicating wether its training or testing. If 'train', both images and masks
-                will be taken in place.
-
-    Outputs (list): containing [images, masks] properly transformed to tensors and cropped so that
-             they can be feed to the UNet when in training and only images if in test mode.
-
-    Remarks:
-    """
-
-    def __init__(self, transforms=None, type='train'):
-
-        self.images_path = f'data/external/2D/Warwick QU/{type}/images'
-        self.masks_path = f'data/external/2D/Warwick QU/{type}/masks'
-        self.images_names = os.listdir(self.images_path)
-        self.masks_names = os.listdir(self.masks_path)
-        
-        self.transforms = transforms
-
-        self.test = type == 'test'
-        
-    def __len__(self):
-        
-        return len(self.images_names)
-        
-    def __getitem__(self, idx):
-
-        img = Image.open(os.path.join(self.images_path,self.images_names[idx]))
-        img = np.array(img)[:,:,0]
-
-        # Transformation for test mode or self.transform = None
-        transform = transforms.Compose([
-            transforms.ToTensor(),
-            transforms.Resize((512,768))
-        ])
-
-        if self.test:
-
-            return transform(img)
-
-        # Training mode
-        mask = Image.open(os.path.join(self.masks_path,self.masks_names[idx]))
-        mask = np.array(mask) > 0
-        
-        if self.transforms is not None:
-            augmented = self.transforms(image=img, mask=mask)
-
-            # Retrieve the augmented image and mask with shape depending on Crop of transformation
-            img = augmented['image']  # shape (H, W)
-            mask = augmented['mask']  # shape (H, W)
-
-            # This dataset contains only one channel intead of 3
-            img = transforms.ToTensor()(img) # shape (1, H, W)
-            mask = transforms.ToTensor()(mask) # shape (1, H, W)
-            
-            return img, mask
-    
-        else:
-            img = transform(img)
-            mask = transform(mask)
-
-            return img, mask
-    
-
 #####################################################################
 
 
