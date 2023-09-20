@@ -5,6 +5,21 @@ from PIL import Image
 
 
 def normalize_images(name, channels, start=1):
+    """
+    Creates a new folder called 'normalized' inside test and train folders for the dataset desired.
+    The folder contains the numpy arrays (.npy) associated to the N(0,1) normalization of the images
+    done channel wise (it takes care wether the input images have 1 or 3 channels).
+
+    Inputs:
+        - name (str): name of the dataset and folder one wants to normalize (i.e. 'Warwick QU/train')
+        - channels (int): indicating the number of channels of the images associated to 'name/images'.
+        - start (int=1): indicating in what number to start naming the files of the new folder.
+
+    Outputs:
+
+    Remarks: the 'start' value is not needed and makes no difference in the normalization, but it helps
+        for associating images/normalization and masks. Some datasets start counting in 0 and others in 1.
+    """
 
     path = f'data/external/2D/{name}'
 
@@ -52,6 +67,19 @@ def normalize_images(name, channels, start=1):
 
 
 def processWarwick(path):
+    """
+    Organizes the images and masks of the 2015 MICCAI Warwick dataset available in
+    https://warwick.ac.uk/fac/cross_fac/tia/data/glascontest/download in two different folders
+    containing the images and masks separated. It moves the files to new folder instead of
+    copying them.
+
+    Inputs:
+        - path (str): containing the local path to the dataset.
+
+    Outputs:
+
+    Remarks:
+    """
 
     src = ['train', 'test']
     dst = ['images', 'masks']
@@ -81,6 +109,18 @@ def processWarwick(path):
 
 
 def processChallenge(path, type='train'):
+    """
+    Organizes the images and masks of a specific dataset from the Cell Tracking Challenge
+    available in http://celltrackingchallenge.net/ in two different folders containing the
+    images and masks separated. It moves the files to new folder instead of copying them.
+
+    Inputs:
+        - path (str): containing the local path to the dataset.
+
+    Outputs:
+
+    Remarks:
+    """
 
     dsts = ['images', 'masks']
     folders = ['01', '02']
@@ -110,6 +150,18 @@ def processChallenge(path, type='train'):
 
 
 def processBowl(path):
+    """
+    Organizes the images and masks from the Bowl Science Kaggl dataset available in
+    https://www.kaggle.com/c/data-science-bowl-2018/data in two different folders containing
+    the images and masks separated. It moves the files to new folder instead of copying them.
+
+    Inputs:
+        - path (str): containing the local path to the dataset.
+
+    Outputs:
+
+    Remarks:
+    """
 
     src = ['train', 'test']
     dst = ['images', 'masks']
@@ -167,6 +219,18 @@ def processBowl(path):
 
 
 def maskBowl(path):
+    """
+    Creates semantic segmentation masks from the instance segmentation ones. It merges
+    all the masks of different instances from the same image into a single one for the
+    Bowl Science Kaggle dataset.
+
+    Inputs:
+        - path (str): containing the local path to the dataset.
+
+    Outputs:
+
+    Remarks:
+    """
 
     names = os.listdir(os.path.join(path,'images'))
     total = len(names)
