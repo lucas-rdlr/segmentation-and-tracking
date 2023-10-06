@@ -18,4 +18,4 @@ A GPU with CUDA support is not mandatory, although the experiments take quite a 
 
  - `src` contatins all the `.py` modules including datasets and training functions.
  - `notebooks` contains the `.ipynb` files with the experiments and tested functions.
- - `environment.yml` the virtual environment file which can be used to install packages.
+ - `requirements.txt` the virtual environment file which can be used to install packages.
