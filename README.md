@@ -19,3 +19,44 @@ A GPU with CUDA support is not mandatory, although the experiments take quite a 
  - `src` contatins all the `.py` modules including datasets and training functions.
  - `notebooks` contains the `.ipynb` files with the experiments and tested functions.
  - `requirements.txt` the virtual environment file which can be used to install packages.
+
+# Folder structure
+```
+├── data
+│   ├── external
+│   └── internal
+├── experiments
+├── models
+├── notebooks
+│   ├── data_science_bowl_2018.ipynb
+│   ├── DeepLab.ipynb
+│   ├── draft.ipynb
+│   ├── general.ipynb
+│   ├── __init__.py
+│   ├── MaskRCNN.ipynb
+│   ├── mesh_alice.ipynb
+│   ├── prueba.py
+│   ├── tracking.ipynb
+│   └── UNet.ipynb
+├── README.md
+├── requirements.txt
+├── src
+│   ├── data
+│   ├── datasets.py
+│   ├── downloads.py
+│   ├── features
+│   ├── initializer.py
+│   ├── __init__.py
+│   ├── labeling.py
+│   ├── models
+│   ├── nets.py
+│   ├── processing.py
+│   ├── __pycache__
+│   ├── segmentation.py
+│   ├── training.py
+│   ├── transformations.py
+│   ├── visualization
+│   └── visualization.py
+└── tree.txt
+
+```
