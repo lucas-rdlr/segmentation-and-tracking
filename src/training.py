@@ -1,3 +1,4 @@
+import numpy as np
 import torch
 from torch.nn import functional
 import copy
@@ -42,7 +43,7 @@ class EarlyStopping():
 #####################################################################
 
 
-def train_UNet(model, device, optimizer, train_dataloader, val_dataloader=None, early_stopping=None, scheduler=None, epochs=20):
+def train_UNet(model, device, optimizer, train_dataloader, val_dataloader=None, early_stopping=None, scheduler=None, epochs=20, fcc=False):
     """
     Training function for UNet Neural Network.
 
@@ -85,6 +86,9 @@ def train_UNet(model, device, optimizer, train_dataloader, val_dataloader=None, 
             y = y.to(device=device, dtype=torch.long).squeeze(1)
             pred = model(x)
 
+            if fcc:
+               pred = pred['out']
+
             # Compute loss and gradient descent
             loss = functional.cross_entropy(input=pred, target=y)
             optimizer.zero_grad()
@@ -123,6 +127,9 @@ def train_UNet(model, device, optimizer, train_dataloader, val_dataloader=None, 
                     x = x.to(device=device, dtype=torch.float32)
                     y = y.to(device=device, dtype=torch.long).squeeze(1)
                     pred = model(x)
+
+                    if fcc:
+                        pred = pred['out']
 
                     loss = functional.cross_entropy(input=pred, target=y)
 
@@ -192,16 +199,21 @@ def train_MaskRCNN(model, device, optimizer, train_dataloader, val_dataloader=No
 
     train_losses = []
     val_losses = []
+    dices =  []
+    ious = []
+    
+    model = model.to(device=device)
 
     for epoch in range(1, epochs+1):
         train_epoch_loss = 0
 
         model.train()
-        for train_idx, (imgs, targs) in enumerate(train_dataloader, start=1):
-            imgs = [img.to(device) for img in imgs]
-            targs = [{k: v.to(device) for k, v in t.items()} for t in targs]
+        for train_idx, (x, y) in enumerate(train_dataloader, start=1):
+            x = [img.to(device) for img in x]
+            y = [{k: v.to(device) for k, v in t.items()} for t in y]
 
-            losses = model(imgs , targs)
+            # Compute loss and gradient descent
+            losses = model(x, y)
             loss = sum([l for l in losses.values()])
 
             optimizer.zero_grad()
@@ -211,11 +223,11 @@ def train_MaskRCNN(model, device, optimizer, train_dataloader, val_dataloader=No
             if scheduler: 
                 scheduler.step()
 
+            # Calculate batch loss
             batch_loss = loss.item() # loss.cpu().detach().numpy()
             train_epoch_loss += batch_loss
 
-            # print(f"Train Batch [{train_idx}/{len(train_dataloader)}] Loss: {batch_loss:.4f}")
-        
+        # Epoch loss and accuracy
         train_epoch_loss /= len(train_dataloader)
         train_losses.append(train_epoch_loss)
 
@@ -229,23 +241,23 @@ def train_MaskRCNN(model, device, optimizer, train_dataloader, val_dataloader=No
             union = 0
 
             with torch.no_grad():
-                for val_idx, (imgs, targs) in enumerate(val_dataloader, start=1):
-                    imgs = [img.to(device) for img in imgs]
-                    targs = [{k: v.to(device) for k, v in t.items()} for t in targs]
+                for val_idx, (x, y) in enumerate(val_dataloader, start=1):
+                    x = [img.to(device) for img in x]
+                    y = [{k: v.to(device) for k, v in t.items()} for t in y]
 
+                    # Calculate losses using training
                     model.train()
-                    losses = model(imgs, targs)
+                    losses = model(x, y)
                     loss = sum([l for l in losses.values()])
 
                     batch_loss = loss.item() # loss.cpu().detach().numpy()
                     val_epoch_loss += batch_loss
 
-                    # print(f"Val Batch [{val_idx}/{len(val_dataloader)}] Loss: {batch_loss:.4f}")
-
+                    # Calculate predictions using inference
                     model.eval()
-                    pred = model(imgs)
+                    pred = model(x)
 
-                    gt_mask = [torch.sum(item['masks'], dim=0) for item in targs]
+                    gt_mask = [torch.sum(item['masks'], dim=0) for item in y]
                     total_gt_mask = sum(gt_mask) > 0 # shape (443, 512)
 
                     pred_mask = [torch.sum(item['masks'], dim=(0,1)) for item in pred]
@@ -269,17 +281,19 @@ def train_MaskRCNN(model, device, optimizer, train_dataloader, val_dataloader=No
                     union += torch.sum((total_gt_mask + total_pred_mask) - (total_gt_mask * total_pred_mask))
                     iou = intersection / (union + 1e-8)
                 
+                dices.append(dice.item())
+                ious.append(iou.item())
                 val_epoch_loss /= len(val_dataloader)
                 val_losses.append(val_epoch_loss)
-                val_epoch_accuracy = val_epoch_correct / val_epoch_total
 
-                if early_stopping(model, val_epoch_loss):
-                   return train_losses, val_losses
+                if early_stopping is not None:
+                    if early_stopping(model, val_epoch_loss):
+                        return train_losses, val_losses, dices, ious
 
             print(f'Epoch: {epoch}/{epochs}, Train loss: {train_epoch_loss:.4f}, Val loss: {val_epoch_loss:.4f}, '
-                    f'Val acc: {val_epoch_accuracy:.4f}, Dice: {dice:.4}, IoU: {iou:.4}')
+                    f'Dice: {dice:.4}, IoU: {iou:.4}')
             
         else:
             print(f'Epoch: {epoch}/{epochs}, Train loss: {train_epoch_loss:.4f}')    
 
-    return train_losses, val_losses
+    return train_losses, val_losses, dices, ious

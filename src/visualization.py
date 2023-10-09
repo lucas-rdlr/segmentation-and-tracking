@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import plotly.graph_objects as go
 
 
-def plot_mini_batch(imgs, masks=None, overlay=True):
+def plot_mini_batch(imgs, masks=None, overlay=True, batch=4):
     """
     Function for representing batches from both UNet and Mask RCNN Datasets.
 
@@ -24,13 +24,13 @@ def plot_mini_batch(imgs, masks=None, overlay=True):
     """
 
     size = imgs.shape[0]
-    rows = int(np.ceil(size/4))
+    rows = int(np.ceil(size/batch))
     
     if overlay:
         plt.figure(figsize=(20, 10))
 
         for i in range(size):
-            plt.subplot(rows, 4, i+1)
+            plt.subplot(rows, batch, i+1)
             plt.imshow(imgs[i])
 
             if masks is not None:
@@ -40,10 +40,10 @@ def plot_mini_batch(imgs, masks=None, overlay=True):
 
     else:
         rows *= 2
-        fig, ax = plt.subplots(rows, 4, figsize=(20, np.floor(5*len(imgs)/4)))
+        fig, ax = plt.subplots(rows, batch, figsize=(20, np.floor(10*len(imgs)/batch)))
         for i in range(size):
-            group = i // 4
-            off = i % 4
+            group = i // batch
+            off = i % batch
 
             ax[2*group, off].imshow(imgs[i])
             ax[2*group, off].axis('Off')
