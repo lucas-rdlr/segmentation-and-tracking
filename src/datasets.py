@@ -158,10 +158,15 @@ class MaskRCNN_Segmentation_Dataset(Dataset):
         if img_path is not None:
             images_path = img_path
         
-        if mask_path is not None:
-            masks_path = mask_path
-
         images_total = os.listdir(images_path)
+
+        if type == 'train':
+            if mask_path is not None:
+                masks_path = mask_path
+            else:
+                masks_path = f'data/external/2D/{name}/masks'
+            
+            masks_total = os.listdir(masks_path)
 
         if channels == 3:
             channels = cv2.IMREAD_COLOR
@@ -181,9 +186,7 @@ class MaskRCNN_Segmentation_Dataset(Dataset):
             images_names.append(img_path)
 
             if type == 'train':
-                # masks_path = f'data/external/2D/{name}/masks'
-                masks_total = os.listdir(masks_path)
-                mask_path = os.path.join(masks_path,masks_total[i])
+                mask_path = os.path.join(masks_path, masks_total[i])
                 masks_names.append(mask_path)
         
         self.images_names = images_names
@@ -222,9 +225,6 @@ class MaskRCNN_Segmentation_Dataset(Dataset):
 
         else:
             transform = None
-
-        # else:
-        #     transform = transforms.ToTensor()
 
         if self.type == 'test':
             return transforms.ToTensor()(img)
