@@ -5,7 +5,10 @@
 
 # General info
 
-This repository contains the code for the experiments and algorithms developed during the Internship project at Paris Brain Institute (ICM) which is described in the document above.
+*Title: 2D and 3D Analysis of Microscopy Images.*<br>
+Abstract: This document collects the work during the second year master internship at the Brain Institute of Paris (ICM) associated to the M2 master studied at Sorbonne University. The main objective has been the study and analysis of 2D and 3D cell images. More precisely, the segmentation and tracking of this cells as it can give essential information about the migration and behaviour of tumors. Several models for two-classes semantic segmentation have been compared in 2D datasets and instance segmentation has been performed using Mask-RCNN. Future work aims at expand it to 3D datasets working with different object representation like point clouds or meshes instead of stack images and perform tracking on both 2D and 3D datasets.
+
+You can find the whole document at [2D and 3D Analysis of Microscopy Images](https://lucas-rdlr.github.io/pdfs/Lucas%20Rincon%20de%20la%20Rosa%20-%20Internship%20report.pdf).
 
 # Installation
 
